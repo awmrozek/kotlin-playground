@@ -1,43 +1,50 @@
 import javax.swing.*
 import java.awt.*
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 
-// Custom JPanel that acts like a PaintBox
-class PaintBox : JPanel() {
-    private val points = mutableListOf<Point>()
+class AnimatedPaintBox : JPanel() {
+    private var x = 0
+    private var y = 0
+    private var dx = 2
+    private var dy = 3
+    private val diameter = 30
 
     init {
         background = Color.WHITE
         preferredSize = Dimension(400, 300)
 
-        // Mouse listener to draw points on mouse drag
-        addMouseMotionListener(object : MouseAdapter() {
-            override fun mouseDragged(e: MouseEvent) {
-                points.add(e.point)
-                repaint()
-            }
-        })
+        // Timer to update animation every 16 ms (~60 FPS)
+        Timer(16) { update() }.start()
+    }
+
+    private fun update() {
+        // Move the circle
+        x += dx
+        y += dy
+
+        // Bounce off edges
+        if (x < 0 || x + diameter > width) dx = -dx
+        if (y < 0 || y + diameter > height) dy = -dy
+
+        repaint()  // trigger paintComponent
     }
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         val g2 = g as Graphics2D
-        g2.color = Color.BLACK
-        g2.stroke = BasicStroke(2f)
-        for (point in points) {
-            g2.fillOval(point.x, point.y, 4, 4)
-        }
+
+        // Draw the moving circle
+        g2.color = Color.RED
+        g2.fillOval(x, y, diameter, diameter)
     }
 }
 
 fun main() {
     SwingUtilities.invokeLater {
-        val frame = JFrame("PaintBox Example")
+        val frame = JFrame("Animated PaintBox")
         frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
-        val paintBox = PaintBox()
-        frame.contentPane.add(paintBox)
+        val animatedBox = AnimatedPaintBox()
+        frame.contentPane.add(animatedBox)
 
         frame.pack()
         frame.setLocationRelativeTo(null)
